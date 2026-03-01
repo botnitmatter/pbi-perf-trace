@@ -1,0 +1,28 @@
+{
+  "events": [
+    {
+      "id": "1",
+      "name": "Visual Container Lifecycle",
+      "parentId": "1",
+      "start": "2026-03-01T10:00:00.000Z",
+      "end": "2026-03-01T10:00:01.000Z",
+      "metrics": {"visualTitle": "Sample Visual"}
+    },
+    {
+      "id": "2",
+      "name": "Execute DAX Query",
+      "parentId": "1",
+      "start": "2026-03-01T10:00:00.100Z",
+      "end": "2026-03-01T10:00:00.600Z",
+      "metrics": {"visualTitle": "Sample Visual"}
+    },
+    {
+      "id": "3",
+      "name": "Execute Direct Query",
+      "parentId": "1",
+      "start": "2026-03-01T10:00:00.600Z",
+      "end": "2026-03-01T10:00:00.900Z",
+      "metrics": {"visualTitle": "Sample Visual"}
+    }
+  ]
+}

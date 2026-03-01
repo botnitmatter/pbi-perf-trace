@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pbi-perf-trace"
+version = "0.1.0"
+description = "Analyze Power BI Performance Analyzer JSON traces (export + run-level cache-aware summaries)."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "ITMatter AS" }]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["powerbi", "performance", "trace", "dax", "vertipaq"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "pandas>=2.1",
+]
+
+[project.urls]
+Repository = "https://github.com/IT-Matter-AS/pbi-perf-trace"
+Issues = "https://github.com/IT-Matter-AS/pbi-perf-trace/issues"
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2",
+  "pytest>=8",
+  "ruff>=0.5",
+  "twine>=5",
+]
+
+[project.scripts]
+pbi-perf-trace = "pbi_perf_trace.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

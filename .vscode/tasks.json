@@ -1,0 +1,89 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build dist (build + twine check)",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Recurse -Force dist, build -ErrorAction SilentlyContinue; .\\.venv\\Scripts\\python.exe -m build; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; .\\.venv\\Scripts\\python.exe -m twine check dist\\*"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Upload TestPyPI (requires TWINE_PASSWORD)",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"if (-not $env:TWINE_PASSWORD) { throw 'Set TWINE_PASSWORD to your TestPyPI API token (do not paste it into chat). Example: $env:TWINE_PASSWORD=\"pypi-...\"' }; $env:TWINE_USERNAME='__token__'; .\\.venv\\Scripts\\python.exe -m twine upload -r testpypi dist\\*"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Upload PyPI (requires TWINE_PASSWORD)",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"if (-not $env:TWINE_PASSWORD) { throw 'Set TWINE_PASSWORD to your PyPI API token (do not paste it into chat). Example: $env:TWINE_PASSWORD=\"pypi-...\"' }; $env:TWINE_USERNAME='__token__'; .\\.venv\\Scripts\\python.exe -m twine upload dist\\*"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "Ruff",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"ruff check ."
+			],
+			"isBackground": false,
+			"group": "test"
+		},
+		{
+			"label": "Pytest",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				".\\.venv\\Scripts\\python.exe -m pytest -q"
+			],
+			"isBackground": false,
+			"group": "test"
+		},
+		{
+			"label": "Check (ruff + pytest)",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"ruff check .; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; .\\.venv\\Scripts\\python.exe -m pytest -q"
+			],
+			"isBackground": false,
+			"group": "test"
+		}
+	]
+}

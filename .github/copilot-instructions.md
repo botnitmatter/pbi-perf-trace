@@ -1,0 +1,17 @@
+- [x] Verify that the copilot-instructions.md file in the .github directory is created.
+- [x] Clarify Project Requirements
+  - Python package, pip-ready, `src/` layout, CLI, tests.
+- [x] Scaffold the Project
+  - Added `pyproject.toml`, `src/pbi_perf_trace`, `tests/`, `README.md`.
+- [x] Customize the Project
+  - Ported notebook logic into importable modules and a CLI.
+- [x] Install Required Extensions
+  - No extensions required.
+- [x] Compile the Project
+  - `pip install -e .[dev]` succeeded; `pytest` passed.
+- [ ] Create and Run Task
+  - Optional; create a VS Code task if you want one-click test runs.
+- [ ] Launch the Project
+  - Optional; CLI is available via `pbi-perf-trace`.
+- [x] Ensure Documentation is Complete
+  - `README.md` exists and includes install + CLI usage.
