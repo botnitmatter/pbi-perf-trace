@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -8,9 +9,40 @@ import pandas as pd
 
 from . import __version__
 from .analysis import AnalysisConfig, build_run_level_tables
+from .api import run_all
 from .metadata import event_metadata_frame
 from .normalize import load_traces
 from .pivot import pivot_durations
+
+
+def _load_autorun_config(path: Path) -> tuple[dict[str, Path], str | None, str | None]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("Config must be a JSON object")
+
+    files_obj = data.get("files")
+    if not isinstance(files_obj, dict) or not files_obj:
+        raise ValueError("Config must include non-empty 'files' object mapping tag -> filepath")
+
+    base = path.parent
+    files: dict[str, Path] = {}
+    for tag, p in files_obj.items():
+        if not isinstance(tag, str) or not tag.strip():
+            raise ValueError("Config 'files' keys (tags) must be non-empty strings")
+        if not isinstance(p, str) or not p.strip():
+            raise ValueError("Config 'files' values must be non-empty strings (file paths)")
+        resolved = Path(p).expanduser()
+        if not resolved.is_absolute():
+            resolved = (base / resolved).resolve()
+        files[tag] = resolved
+
+    export_output = data.get("export_output", "output.csv")
+    out_dir = data.get("out_dir", "out")
+    if export_output is not None and not isinstance(export_output, str):
+        raise ValueError("Config 'export_output' must be a string or null")
+    if out_dir is not None and not isinstance(out_dir, str):
+        raise ValueError("Config 'out_dir' must be a string or null")
+    return files, export_output, out_dir
 
 
 def _parse_files_kv(items: list[str]) -> dict[str, str]:
@@ -214,7 +246,14 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    sub = parser.add_subparsers(dest="cmd", required=True)
+    parser.add_argument(
+        "--config",
+        default="pbi-perf-trace.json",
+        help="Config file used when running with no args (autorun)",
+    )
+    # Don't let argparse emit a hard error on empty invocation; we'll show help
+    # ourselves in `main()` for a nicer UX.
+    sub = parser.add_subparsers(dest="cmd", required=False)
 
     p_export = sub.add_parser("export", help="Export pivoted CSV from trace JSON")
     p_export.add_argument("--base-path", required=True)
@@ -243,6 +282,22 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     try:
         args = parser.parse_args(argv)
+        if not hasattr(args, "func"):
+            # No subcommand provided -> try autorun via config.
+            cfg_path = Path(args.config).expanduser()
+            if cfg_path.is_file():
+                files, export_output, out_dir = _load_autorun_config(cfg_path)
+                run_all(files, export_output=export_output, out_dir=out_dir)
+                return 0
+
+            parser.print_help(file=sys.stderr)
+            print(
+                f"\nAutorun config not found: {cfg_path}\n"
+                "Create it to run export+analyze automatically with no args.\n"
+                "Example: {\"files\": {\"tag\": \"C:/path/to/trace.json\"}}",
+                file=sys.stderr,
+            )
+            return 2
         return int(args.func(args))
     except (ValueError, KeyError, FileNotFoundError) as e:
         print(f"pbi-perf-trace: error: {e}", file=sys.stderr)

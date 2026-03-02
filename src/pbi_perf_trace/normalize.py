@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from os import PathLike
 from pathlib import Path
 from typing import Any
@@ -120,6 +121,30 @@ def load_traces(files: dict[str, str], base_path: str | Path | PathLike[str]) ->
     for filename, tag in files.items():
         frame = events_to_frame(read_trace_json(base_path / filename))
         frame["tag"] = tag
+        frames.append(frame)
+
+    if not frames:
+        return pd.DataFrame()
+    return pd.concat(frames, ignore_index=True)
+
+
+def load_traces_from_paths(
+    files: Mapping[str, str | Path | PathLike[str]],
+) -> pd.DataFrame:
+    """Load and normalize multiple trace files by explicit paths.
+
+    Args:
+        files: Mapping of `tag -> path_to_trace_json`.
+
+    Returns:
+        Concatenated events DataFrame with a `tag` column.
+    """
+
+    frames: list[pd.DataFrame] = []
+    for tag, path in files.items():
+        p = Path(path).expanduser()
+        frame = events_to_frame(read_trace_json(p))
+        frame["tag"] = str(tag)
         frames.append(frame)
 
     if not frames:
